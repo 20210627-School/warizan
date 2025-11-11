@@ -5,254 +5,186 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>割り算トレーニング</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #a8edea, #fed6e3);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 0;
-      min-height: 100vh;
-    }
+    :root{--bg1:#a8edea;--bg2:#fed6e3;--accent:#3ca6ff;--good:#00b894;--bad:#e63946}
+    html,body{height:100%;margin:0;font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));-webkit-font-smoothing:antialiased}
+    .container{
+      width:95vw;max-width:480px;margin:0 auto;padding:18px;border-radius:18px;background:rgba(255,255,255,0.95);box-shadow:0 8px 25px rgba(0,0,0,0.12);display:flex;flex-direction:column;align-items:center}
 
-    .container {
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 20px;
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-      width: 95vw;
-      max-width: 480px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+    /* difficulty info */
+    .diffWrap{width:100%;margin-bottom:14px;display:flex;flex-direction:column;gap:8px}
+    .diffLabel{display:flex;justify-content:space-between;align-items:center;font-weight:800;color:#234};
+    .levelText{font-weight:900;color:var(--accent);font-size:16px}
+    #difficultySlider{width:100%;-webkit-appearance:none;height:14px;border-radius:8px;background:#d6d6d6;outline:none}
+    #difficultySlider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:36px;height:36px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.18)}
+    #difficultySlider::-moz-range-thumb{width:36px;height:36px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.18)}
+    .ticks{display:flex;justify-content:space-between;font-size:12px;color:#6b7280;margin-top:6px}
 
-    .mode-switch {
-      width: 100%;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: center;
-    }
+    .question{font-size:3rem;font-weight:800;color:#0b1720;margin:6px 0 14px;text-align:center}
+    .input-box{width:100%;text-align:center;padding:12px;font-size:2.0rem;border:2px solid rgba(0,0,0,0.06);border-radius:12px;background:linear-gradient(180deg,#fbfeff,#f2fbff);margin-bottom:18px}
 
-    #difficultySlider {
-      width: 100%;
-      -webkit-appearance: none;
-      height: 16px;
-      border-radius: 8px;
-      background: #ccc;
-      outline: none;
-      transition: background 0.2s;
-    }
+    .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%}
+    .btn{background:#fff;border:2px solid #e7eef8;border-radius:16px;padding:20px 0;font-size:1.9rem;font-weight:900;color:#0b1720;box-shadow:0 6px 14px rgba(6,12,24,0.06);cursor:pointer;transition:transform .12s ease}
+    .btn:active{transform:translateY(3px)}
+    .btn.rem{background:linear-gradient(180deg,#d3fbe8,#b7f1da);color:#046a4a}
+    .btn.del{background:linear-gradient(180deg,#ffd6cc,#ffb8a3);color:#7a2b0d}
+    .btn.ok{grid-column:span 3;background:linear-gradient(180deg,#9bd7ff,#3ca6ff);color:#042b45;font-size:1.8rem}
 
-    #difficultySlider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #fff;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      transition: transform 0.2s ease;
-    }
+    /* centered overlay */
+    .overlay{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:30}
+    .oval{position:absolute;width:58vmin;height:58vmin;border-radius:999px;background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.95), rgba(0,200,120,0.22) 12%, rgba(0,160,95,0.06) 45%, rgba(0,160,95,0) 100%);filter:blur(6px);opacity:0;transform:scale(0)}
+    .oval.show{animation:ovalIn 1.2s cubic-bezier(.16,.9,.3,1) forwards}
+    @keyframes ovalIn{0%{transform:scale(.2);opacity:.12}45%{transform:scale(1.05);opacity:1}100%{transform:scale(1.9);opacity:0}}
+    .mark{position:absolute;font-size:12vmin;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);opacity:0}
+    .mark.good{color:var(--good)}.mark.bad{color:var(--bad)}
+    .mark.showGood{animation:markGood 1s ease forwards}
+    .mark.showBad{animation:markBad .9s ease forwards}
+    @keyframes markGood{0%{transform:translate(-50%,-50%) scale(0);opacity:0}50%{transform:translate(-50%,-50%) scale(1.3);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:1}}
+    @keyframes markBad{0%{transform:translate(-50%,-50%) rotate(0deg) scale(0);opacity:0}60%{transform:translate(-50%,-50%) rotate(360deg) scale(1.2);opacity:1}100%{transform:translate(-50%,-50%) rotate(540deg) scale(1);opacity:0}}
 
-    #difficultySlider::-moz-range-thumb {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: #fff;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      transition: transform 0.2s ease;
-    }
-
-    .question {
-      font-size: 3rem;
-      font-weight: 700;
-      color: #2b2b2b;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    .input-box {
-      width: 100%;
-      text-align: center;
-      padding: 14px;
-      font-size: 2.2rem;
-      border: 2px solid #ccc;
-      border-radius: 12px;
-      margin-bottom: 25px;
-    }
-
-    .keypad {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      width: 100%;
-    }
-
-    .btn {
-      background: white;
-      border: 2px solid #ddd;
-      border-radius: 18px;
-      font-size: 2.2rem;
-      font-weight: bold;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-      padding: 22px 0;
-      color: #333;
-      transition: transform 0.15s ease, background 0.2s;
-    }
-
-    .btn:hover { transform: scale(1.05); }
-    .btn.rem { background: #b7f1da; color: #046a4a; }
-    .btn.del { background: #ffd6cc; color: #7a2b0d; }
-    .btn.ok { grid-column: span 3; background: #3ca6ff; color: white; font-size: 2rem; }
-
-    .overlay {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 10;
-      pointer-events: none;
-    }
-
-    .circle, .cross {
-      font-size: 10rem;
-      opacity: 0;
-      transform: scale(0);
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0);
-    }
-
-    .circle.show { color: #00b894; animation: circleAnim 1s ease forwards; }
-    .cross.show { color: #e63946; animation: crossAnim 0.9s ease forwards; }
-
-    @keyframes circleAnim {
-      0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-      50% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
-      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-    }
-
-    @keyframes crossAnim {
-      0% { transform: translate(-50%, -50%) rotate(0deg) scale(0); opacity: 0; }
-      60% { transform: translate(-50%, -50%) rotate(360deg) scale(1.2); opacity: 1; }
-      100% { transform: translate(-50%, -50%) rotate(720deg) scale(1); opacity: 0; }
-    }
+    /* small screens adjust */
+    @media(max-width:420px){.question{font-size:2.4rem}.input-box{font-size:1.8rem}.btn{font-size:1.6rem;padding:18px 0}.mark{font-size:10vmin}}
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="mode-switch">
-      <input type="range" min="0" max="100" value="0" id="difficultySlider">
+    <div class="diffWrap">
+      <div class="diffLabel">
+        <div>難易度</div>
+        <div class="levelText" id="levelText">普通</div>
+      </div>
+      <input id="difficultySlider" type="range" min="0" max="100" value="0">
+      <div class="ticks"><span>やさしい</span><span>普通</span><span>難しい</span><span>激ムズ</span></div>
     </div>
 
-    <div id="question" class="question">8 ÷ 4 = ?</div>
-    <input id="answer" type="text" class="input-box" readonly>
+    <div id="question" class="question">-- ÷ -- = ?</div>
+    <input id="answer" class="input-box" readonly>
 
-    <div class="keypad">
-      <button class="btn" onclick="press(1)">1</button>
-      <button class="btn" onclick="press(2)">2</button>
-      <button class="btn" onclick="press(3)">3</button>
-      <button class="btn" onclick="press(4)">4</button>
-      <button class="btn" onclick="press(5)">5</button>
-      <button class="btn" onclick="press(6)">6</button>
-      <button class="btn" onclick="press(7)">7</button>
-      <button class="btn" onclick="press(8)">8</button>
-      <button class="btn" onclick="press(9)">9</button>
-      <button class="btn del" onclick="backspace()">⌫</button>
-      <button class="btn" onclick="press(0)">0</button>
-      <button class="btn ok" onclick="checkAnswer()">OK</button>
-      <button class="btn rem" onclick="pressR()">あまり</button>
+    <div class="keypad" id="keypad">
+      <!-- buttons injected -->
     </div>
   </div>
 
-  <div class="overlay">
-    <div id="circle" class="circle">⭕</div>
-    <div id="cross" class="cross">❌</div>
+  <div class="overlay" aria-hidden="true">
+    <div id="oval" class="oval"></div>
+    <div id="goodMark" class="mark good">◯</div>
+    <div id="badMark" class="mark bad">✖</div>
   </div>
 
-  <script>
-    const slider = document.getElementById('difficultySlider');
-    let difficulty = 0;
+<script>
+  const slider = document.getElementById('difficultySlider');
+  const levelText = document.getElementById('levelText');
+  const keypad = document.getElementById('keypad');
+  const questionEl = document.getElementById('question');
+  const answerEl = document.getElementById('answer');
+  const oval = document.getElementById('oval');
+  const goodMark = document.getElementById('goodMark');
+  const badMark = document.getElementById('badMark');
 
-    slider.addEventListener('input', () => {
-      const value = parseInt(slider.value);
-      difficulty = Math.floor(value / 10);
-      animateQuestionChange();
-    });
+  // difficulty: 0..9
+  let difficulty = 0;
+  slider.addEventListener('input', ()=>{
+    const v = parseInt(slider.value);
+    difficulty = Math.floor(v/10);
+    updateSliderVisual(v);
+    updateLevelLabel();
+    // immediate change (no animation)
+    generateQuestion();
+  });
 
-    let num1, num2, correct, remainder;
+  function updateSliderVisual(v){
+    // colored fill to show meaning
+    const percent = v;
+    slider.style.background = `linear-gradient(90deg,#bfe7ff ${percent}%, #e6e6e6 ${percent}%)`;
+  }
 
-    function newQuestion() {
-      num2 = Math.floor(Math.random() * 8) + 2;
-      if(difficulty <= 3){
-        correct = Math.floor(Math.random() * 9) + 1;
-        num1 = num2 * correct;
-        remainder = 0;
-      } else if(difficulty <= 6){
-        num1 = Math.floor(Math.random() * 80) + 10;
-        remainder = num1 % num2;
-        correct = Math.floor(num1 / num2);
-      } else if(difficulty <= 8){
-        num1 = Math.floor(Math.random() * 200) + 50;
-        remainder = num1 % num2;
-        correct = Math.floor(num1 / num2);
-      } else {
-        num1 = Math.floor(Math.random() * 500) + 100;
-        remainder = num1 % num2;
-        correct = Math.floor(num1 / num2);
-      }
-      document.getElementById('question').textContent = `${num1} ÷ ${num2} = ?`;
-      document.getElementById('answer').value = '';
+  function updateLevelLabel(){
+    if(difficulty <= 2) levelText.textContent = 'やさしい';
+    else if(difficulty <=5) levelText.textContent = '普通';
+    else if(difficulty <=7) levelText.textContent = '難しい';
+    else levelText.textContent = '激ムズ';
+  }
+
+  function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a }
+  let current = {a:0,b:0,q:0,r:0};
+
+  function generateQuestion(){
+    const d = difficulty;
+    // choose divisor
+    let b = randInt(2,9);
+    if(d >= 5) b = randInt(10,99);
+    if(d >= 8) b = randInt(12,99);
+
+    if(d <= 3){
+      // easy: divisible small
+      const q = randInt(2,19);
+      const a = b * q;
+      current = {a,b,q,r:0};
+    } else if(d <=6){
+      // normal: mixed moderate
+      if(Math.random() < 0.5){ const q = randInt(2,12); const a = b*q; current={a,b,q,r:0}; }
+      else { const a = randInt(50,199); const q = Math.floor(a/b); const r = a%b; current={a,b,q,r}; }
+    } else if(d <=8){
+      // hard: larger numbers, more remainders
+      if(Math.random() < 0.3){ const q = randInt(10,30); const a = b*q; current={a,b,q,r:0}; }
+      else { const a = randInt(200,799); const q = Math.floor(a/b); const r = a%b; current={a,b,q,r}; }
+    } else {
+      // extreme
+      const a = randInt(300,1499); const q = Math.floor(a/b); const r = a%b; current={a,b,q,r};
     }
+    questionEl.textContent = `${current.a} ÷ ${current.b} = ?`;
+    answerEl.value = '';
+  }
 
-    function press(num){ document.getElementById('answer').value += num; }
-    function pressR(){ const input=document.getElementById('answer'); if(!input.value.includes('あまり')) input.value+='あまり '; }
-    function backspace(){ const input=document.getElementById('answer'); input.value=input.value.slice(0,-1); }
+  // build keypad in desired layout (1..9 top-left -> 0 centered below 8)
+  const keys = ['1','2','3','4','5','6','7','8','9','⌫','0','OK'];
+  keys.forEach(k=>{
+    const btn = document.createElement('button'); btn.className='btn'; btn.textContent=k;
+    if(k==='⌫') btn.classList.add('del');
+    if(k==='OK') btn.classList.add('ok');
+    btn.addEventListener('click', ()=> handleKey(k));
+    keypad.appendChild(btn);
+  });
+  // add あまり button below as full-width small button
+  const remBtn = document.createElement('button'); remBtn.className='btn rem'; remBtn.textContent='あまり'; remBtn.style.gridColumn='span 3'; remBtn.addEventListener('click', ()=> handleRem()); keypad.appendChild(remBtn);
 
-    function showOverlay(type){
-      const circle = document.getElementById('circle');
-      const cross = document.getElementById('cross');
-      circle.classList.remove('show');
-      cross.classList.remove('show');
-      void circle.offsetWidth;
-      void cross.offsetWidth;
-      if(type==='circle'){ circle.classList.add('show'); setTimeout(()=>circle.classList.remove('show'),1000); }
-      else { cross.classList.add('show'); setTimeout(()=>cross.classList.remove('show'),1000); }
+  function handleKey(k){
+    if(k==='⌫'){ answerEl.value = answerEl.value.slice(0,-1); return }
+    if(k==='OK'){ checkAnswer(); return }
+    answerEl.value += k;
+  }
+  function handleRem(){ if(!answerEl.value.includes('あまり')){ if(answerEl.value && !/\s$/.test(answerEl.value)) answerEl.value += ' '; answerEl.value += 'あまり '; } }
+
+  // answer check with proper remainder handling
+  function checkAnswer(){
+    const raw = answerEl.value.trim();
+    if(!raw) return;
+    if(current.r === 0){
+      // must answer quotient only (or quotient あまり 0)
+      const num = Number(raw.replace(/[^0-9\-]/g,''));
+      if(!Number.isNaN(num) && num === current.q){ showGood(); } else { showBad(); }
+    } else {
+      // remainder exists -> require format "q あまり r" or variants
+      const m = raw.match(/(-?\d+)\s*(?:あまり|r|R)?\s*(\d+)/);
+      if(m){ const q = Number(m[1]); const r = Number(m[2]); if(q===current.q && r===current.r){ showGood(); } else { showBad(); } }
+      else { showBad(); }
     }
+  }
 
-    function checkAnswer(){
-      const input = document.getElementById('answer').value;
-      if(!input) return;
-      const value = parseInt(input);
-      const quotient = Math.floor(num1/num2);
-      if(value === quotient) showOverlay('circle');
-      else showOverlay('cross');
-      setTimeout(animateQuestionChange, 1000);
-    }
+  function showGood(){ oval.classList.remove('show'); goodMark.classList.remove('showGood'); void oval.offsetWidth; oval.classList.add('show'); goodMark.classList.remove('showBad'); void goodMark.offsetWidth; goodMark.classList.add('showGood'); setTimeout(()=>{ goodMark.classList.remove('showGood'); oval.classList.remove('show'); generateQuestion(); }, 900);
+  }
+  function showBad(){ badMark.classList.remove('showBad'); void badMark.offsetWidth; badMark.classList.add('showBad'); setTimeout(()=>{ badMark.classList.remove('showBad'); generateQuestion(); }, 900);
+  }
 
-    function animateQuestionChange(){
-      const container = document.querySelector('.container');
-      container.style.opacity = 0;
-      container.style.transform = 'scale(0.95)';
-      setTimeout(()=>{
-        newQuestion();
-        container.style.transition = 'all 0.4s ease';
-        container.style.opacity = 1;
-        container.style.transform = 'scale(1)';
-      }, 300);
-    }
+  // update initial visuals and start
+  updateSliderVisual(parseInt(slider.value)); updateLevelLabel(); generateQuestion();
 
-    animateQuestionChange();
-  </script>
+  /* accessibility: let "r" key insert あまり when appropriate */
+  window.addEventListener('keydown', e=>{
+    if(e.key === 'Enter') checkAnswer();
+    else if(e.key === 'Backspace') answerEl.value = answerEl.value.slice(0,-1);
+    else if(/^[0-9]$/.test(e.key)) answerEl.value += e.key;
+    else if(e.key.toLowerCase() === 'r') handleRem();
+  });
+</script>
 </body>
 </html>
